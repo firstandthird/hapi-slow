@@ -19,7 +19,7 @@ exports.register = (server, config, next) => {
   // when a request's timeout expires, do this:
   const requestTimeoutExpired = (request) => {
     // log the tardiness:
-    log(['warning', 'hapi-slow'], `Request ${request.id} lagging more than ${options.threshold} seconds`);
+    log(`Request ${request.id} lagging more than ${options.threshold} seconds`);
     // remove the timeout:
     outstandingTimeouts[request.id] = undefined;
   };

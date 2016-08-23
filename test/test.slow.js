@@ -21,7 +21,10 @@ lab.test('will log delayed requests', { timeout: 5000 }, (done) => {
   server.register({
     register: hapiSlow,
     options: {
-      threshold: 10
+      threshold: 10,
+      logr: {
+        defaultTags: ['warning']
+      }
     }
   }, (err) => {
     if (err) {
