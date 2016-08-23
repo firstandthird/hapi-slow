@@ -1,0 +1,35 @@
+{
+  "name": "hapi-slow",
+  "version": "1.0.0",
+  "description": "Hapi plugin to log slow responses",
+  "main": "index.js",
+  "scripts": {
+    "test": "lab -t 100 -e test",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/firstandthird/hapi-slow.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/firstandthird/hapi-slow/issues"
+  },
+  "homepage": "https://github.com/firstandthird/hapi-slow#readme",
+  "dependencies": {
+    "lodash": "^4.15.0",
+    "logr": "^1.11.0"
+  },
+  "devDependencies": {
+    "code": "^2.3.0",
+    "eslint": "^2.9.0",
+    "eslint-config-airbnb": "^8.0.0",
+    "eslint-config-firstandthird": "^2.1.0",
+    "eslint-plugin-import": "^1.5.0",
+    "eslint-plugin-jsx-a11y": "^2.1.0",
+    "eslint-plugin-react": "^5.1.1",
+    "hapi": "^14.2.0",
+    "lab": "^11.0.1"
+  }
+}
