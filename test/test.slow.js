@@ -1,12 +1,18 @@
 'use strict';
+
 const Hapi = require('hapi');
 const code = require('code');
 const lab = exports.lab = require('lab').script();
 const hapiSlow = require('../index.js');
+const Logr = require('logr');
 
 let server;
 lab.beforeEach((done) => {
-  server = new Hapi.Server({});
+  server = new Hapi.Server({
+    debug: {
+      log: ['hapi-slow']
+    }
+  });
   server.connection();
   done();
 });
@@ -18,13 +24,20 @@ lab.afterEach((done) => {
 });
 
 lab.test('will log delayed requests', { timeout: 5000 }, (done) => {
+  const statements = [];
+  server.on('log', (logObj) => {
+    code.expect(logObj.tags).to.include('hapi-slow');
+    code.expect(logObj.tags).to.include('error');
+    code.expect(typeof logObj.data).to.equal('object');
+    code.expect(logObj.data.message).to.include('too long');
+    code.expect(typeof logObj.data.id).to.not.equal(undefined);
+    statements.push(logObj.data);
+  })
   server.register({
     register: hapiSlow,
     options: {
       threshold: 10,
-      logr: {
-        defaultTags: ['warning']
-      }
+      tags: ['error']
     }
   }, (err) => {
     if (err) {
@@ -36,25 +49,18 @@ lab.test('will log delayed requests', { timeout: 5000 }, (done) => {
       handler: (request, reply) => {
         setTimeout(() => {
           reply('done!');
-        }, 1200);
+        }, 200);
       }
     });
-    const logged = [];
-    const oldLog = console.log;
-    console.log = (statement) => {
-      oldLog(statement)
-      logged.push(statement);
-    }
     setTimeout(() => {
-      console.log = oldLog;
-      code.expect(logged.length).to.be.greaterThan(0);
-      code.expect(logged[0]).to.include('lagging');
       done();
     }, 4000);
     server.inject({
       url: '/'
     }, (response) => {
       code.expect(response.statusCode).to.equal(200);
+      code.expect(statements.length).to.equal(1);
+      code.expect(statements[0].message).to.include('too long');
     });
   });
 });
@@ -76,17 +82,15 @@ lab.test('will not react to requests that do not exceed the threshold', { timeou
         reply('done!');
       }
     });
-    const oldLog = console.log;
     // will fail if anything is logged:
-    console.log = (statement) => {
-      expect(false).to.equal(true);
-    }
+    server.on('log', (statement) => {
+      code.expect(false).to.equal(true);
+    });
     server.inject({
       url: '/'
     }, (response) => {
       code.expect(response.statusCode).to.equal(200);
       setTimeout(() => {
-        console.log = oldLog;
         done();
       }, 1100);
     });
