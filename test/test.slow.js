@@ -29,7 +29,8 @@ lab.test('will log delayed requests', { timeout: 5000 }, (done) => {
     code.expect(logObj.tags).to.include('hapi-slow');
     code.expect(logObj.tags).to.include('error');
     code.expect(typeof logObj.data).to.equal('object');
-    code.expect(logObj.data.message).to.include('too long');
+    code.expect(logObj.data.message).to.include('request took');
+    code.expect(typeof logObj.data.responseTime).to.equal('number');
     code.expect(typeof logObj.data.id).to.not.equal(undefined);
     statements.push(logObj.data);
   });
@@ -60,7 +61,8 @@ lab.test('will log delayed requests', { timeout: 5000 }, (done) => {
     }, (response) => {
       code.expect(response.statusCode).to.equal(200);
       code.expect(statements.length).to.equal(1);
-      code.expect(statements[0].message).to.include('too long');
+      code.expect(statements[0].message).to.include('request took');
+      code.expect(typeof statements[0].responseTime).to.equal('number');
     });
   });
 });
@@ -83,7 +85,7 @@ lab.test('will not react to requests that do not exceed the threshold', { timeou
       }
     });
     // will fail if anything is logged:
-    server.on('log', (statement) => {
+    server.on('log', () => {
       code.expect(false).to.equal(true);
     });
     server.inject({
