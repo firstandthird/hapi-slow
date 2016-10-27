@@ -30,7 +30,7 @@ lab.test('will log delayed requests', { timeout: 5000 }, (done) => {
     code.expect(logObj.tags).to.include('error');
     code.expect(typeof logObj.data).to.equal('object');
     code.expect(logObj.data.message).to.include('request took');
-    code.expect(typeof logObj.data.expired).to.equal('number');
+    code.expect(typeof logObj.data.responseTime).to.equal('number');
     code.expect(typeof logObj.data.id).to.not.equal(undefined);
     statements.push(logObj.data);
   })
@@ -62,7 +62,7 @@ lab.test('will log delayed requests', { timeout: 5000 }, (done) => {
       code.expect(response.statusCode).to.equal(200);
       code.expect(statements.length).to.equal(1);
       code.expect(statements[0].message).to.include('request took');
-      code.expect(typeof statements[0].expired).to.equal('number');
+      code.expect(typeof statements[0].responseTime).to.equal('number');
     });
   });
 });
