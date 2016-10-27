@@ -35,6 +35,5 @@ exports.register = (server, config, next) => {
 };
 
 exports.register.attributes = {
-  name: 'hapi-slow',
-  version: '0.1.0'
+  pkg: require('./package.json')
 };
