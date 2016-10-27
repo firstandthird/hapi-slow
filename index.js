@@ -13,12 +13,13 @@ exports.register = (server, config, next) => {
   const options = _.defaults(config, defaultOptions);
 
   // when a request took too long, do this:
-  const requestTimeoutExpired = (request) => {
+  const requestTimeoutExpired = (expired, request) => {
     // log the tardiness:
     server.log(tags, {
       id: request.id,
+      expired,
       threshold: options.threshold,
-      message: 'request took too long to process',
+      message: `request took ${expired}ms to process`,
       url: request.url,
       userAgent: request.userAgent
     });
@@ -26,8 +27,9 @@ exports.register = (server, config, next) => {
 
   server.on('tail', (request) => {
     // check the tail response times and notify if needed:
-    if (request.info.responded - request.info.received > options.threshold) {
-      requestTimeoutExpired(request);
+    const expired = request.info.responded - request.info.received;
+    if (expired > options.threshold) {
+      requestTimeoutExpired(expired, request);
     }
   });
 
