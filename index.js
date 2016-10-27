@@ -20,6 +20,7 @@ exports.register = (server, config, next) => {
       threshold: options.threshold,
       message: 'request took too long to process',
       url: request.url,
+      method: request.method,
       userAgent: request.userAgent
     });
   };

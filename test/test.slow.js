@@ -32,7 +32,7 @@ lab.test('will log delayed requests', { timeout: 5000 }, (done) => {
     code.expect(logObj.data.message).to.include('too long');
     code.expect(typeof logObj.data.id).to.not.equal(undefined);
     statements.push(logObj.data);
-  })
+  });
   server.register({
     register: hapiSlow,
     options: {
@@ -93,6 +93,41 @@ lab.test('will not react to requests that do not exceed the threshold', { timeou
       setTimeout(() => {
         done();
       }, 1100);
+    });
+  });
+});
+
+lab.test('it tracks which method was used', (done) => {
+  server.on('log', (logObj) => {
+    code.expect(logObj.data.method).to.equal('get');
+    done();
+  });
+
+  server.register({
+    register: hapiSlow,
+    options: {
+      threshold: 10,
+      tags: ['error']
+    }
+  }, (err) => {
+    if (err) {
+      throw err;
+    }
+    server.route({
+      method: 'GET',
+      path: '/',
+      handler: (request, reply) => {
+        setTimeout(() => {
+          reply('done!');
+        }, 200);
+      }
+    });
+    setTimeout(() => {
+      done();
+    }, 4000);
+    server.inject({
+      url: '/'
+    }, (response) => {
     });
   });
 });
