@@ -21,11 +21,11 @@
     "logr": "^1.13.0"
   },
   "devDependencies": {
-    "code": "^2.3.0",
+    "code": "^4.0.0",
     "eslint": "^3.4.0",
     "eslint-config-firstandthird": "^3.0.2",
-    "eslint-plugin-import": "^1.14.0",
-    "hapi": "^14.2.0",
+    "eslint-plugin-import": "^2.2.0",
+    "hapi": "^16.0.2",
     "lab": "^11.0.1"
   }
 }
