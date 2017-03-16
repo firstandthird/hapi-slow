@@ -17,10 +17,10 @@
   },
   "homepage": "https://github.com/firstandthird/hapi-slow#readme",
   "dependencies": {
-    "lodash": "^4.15.0",
-    "logr": "^1.13.0"
+    "lodash": "^4.15.0"
   },
   "devDependencies": {
+    "logr": "^1.13.0",
     "code": "^2.3.0",
     "eslint": "^3.4.0",
     "eslint-config-firstandthird": "^3.0.2",
