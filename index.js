@@ -20,9 +20,11 @@ exports.register = (server, config, next) => {
       responseTime,
       threshold: options.threshold,
       message: `request took ${responseTime}ms to process`,
-      url: request.url,
+      url: request.url.path,
+      hash: request.url.hash,
       method: request.method,
-      userAgent: request.userAgent
+      userAgent: request.headers['user-agent'],
+      referrer: request.info.referrer
     });
   };
 
