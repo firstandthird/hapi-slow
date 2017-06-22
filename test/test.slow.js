@@ -133,3 +133,52 @@ lab.test('it tracks which method was used', (done) => {
     });
   });
 });
+
+lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, (done) => {
+  const statements = [];
+  server.on('log', (logObj) => {
+    statements.push(logObj);
+  });
+
+  server.register({
+    register: hapiSlow,
+    options: {
+      threshold: 10,
+      tags: ['error']
+    }
+  }, (err) => {
+    if (err) {
+      throw err;
+    }
+    server.route({
+      method: 'GET',
+      path: '/',
+      handler: (request, reply) => {
+        request.timingStart('call db');
+        request.timingStart('process data');
+        setTimeout(() => {
+          request.timingEnd('call db');
+          setTimeout(() => {
+            request.timingEnd('process data');
+            reply(null, request.plugins);
+          }, 300);
+        }, 200);
+      }
+    });
+    server.inject({
+      url: '/'
+    }, (response) => {
+      server.inject({
+        url: '/'
+      }, (response) => {
+        // let 'tail' process:
+        setTimeout(() => {
+          code.expect(statements.length).to.equal(6);
+          code.expect(statements[1].data.name).to.equal('call db');
+          code.expect(statements[1].data.elapsed).to.be.greaterThan(200);
+          done();
+        }, 500);
+      })
+    });
+  });
+});
