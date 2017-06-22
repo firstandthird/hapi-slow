@@ -175,7 +175,7 @@ lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, (d
         setTimeout(() => {
           code.expect(statements.length).to.equal(6);
           code.expect(statements[1].data.name).to.equal('call db');
-          code.expect(statements[1].data.elapsed).to.be.greaterThan(200);
+          code.expect(statements[1].data.elapsed).to.be.greaterThan(199);
           done();
         }, 500);
       })
