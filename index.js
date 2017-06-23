@@ -26,7 +26,23 @@ exports.register = (server, config, next) => {
       userAgent: request.headers['user-agent'],
       referrer: request.info.referrer
     });
+    if (request.plugins['hapi-slow']) {
+      Object.keys(request.plugins['hapi-slow']).forEach((key) => {
+        server.log(['hapi-slow', 'timing data'], request.plugins['hapi-slow'][key]);
+      });
+    }
   };
+  server.decorate('request', 'timingStart', function(key) {
+    if (!this.plugins['hapi-slow']) {
+      this.plugins['hapi-slow'] = {};
+    }
+    this.plugins['hapi-slow'][key] = { name: key, start: new Date() };
+  });
+  server.decorate('request', 'timingEnd', function(key) {
+    const timing = this.plugins['hapi-slow'][key];
+    timing.end = new Date();
+    timing.elapsed = timing.end - timing.start;
+  });
 
   server.on('tail', (request) => {
     // check the tail response times and notify if needed:
