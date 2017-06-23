@@ -153,6 +153,8 @@ lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, (d
       method: 'GET',
       path: '/',
       handler: (request, reply) => {
+        // timing entries are local to each individual request:
+        code.expect(Object.keys(request.plugins).length).to.equal(0);
         request.timingStart('call db');
         request.timingStart('process data');
         setTimeout(() => {
