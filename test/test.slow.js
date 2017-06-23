@@ -4,7 +4,6 @@ const Hapi = require('hapi');
 const code = require('code');
 const lab = exports.lab = require('lab').script();
 const hapiSlow = require('../index.js');
-const Logr = require('logr');
 
 let server;
 lab.beforeEach((done) => {
@@ -167,10 +166,10 @@ lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, (d
     });
     server.inject({
       url: '/'
-    }, (response) => {
+    }, () => {
       server.inject({
         url: '/'
-      }, (response) => {
+      }, () => {
         // let 'tail' process:
         setTimeout(() => {
           code.expect(statements.length).to.equal(6);
@@ -178,7 +177,7 @@ lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, (d
           code.expect(statements[1].data.elapsed).to.be.greaterThan(199);
           done();
         }, 500);
-      })
+      });
     });
   });
 });
