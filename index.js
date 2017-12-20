@@ -13,12 +13,12 @@ exports.register = (server, config, next) => {
   const options = _.defaults(config, defaultOptions);
 
   // when a request took too long, do this:
-  const requestTimeoutExpired = (responseTime, request) => {
+  const requestTimeoutExpired = (responseTime, threshold, request) => {
     // log the tardiness:
     server.log(tags, {
       id: request.id,
       responseTime,
-      threshold: options.threshold,
+      threshold,
       message: `request took ${responseTime}ms to process`,
       url: request.url.path,
       hash: request.url.hash,
@@ -47,8 +47,13 @@ exports.register = (server, config, next) => {
   server.on('tail', (request) => {
     // check the tail response times and notify if needed:
     const responseTime = request.info.responded - request.info.received;
-    if (responseTime > options.threshold) {
-      requestTimeoutExpired(responseTime, request);
+    const plugin = request.route.settings.plugins['hapi-slow'];
+    const threshold = (plugin && plugin.threshold) ? plugin.threshold : options.threshold;
+    if (threshold === false) {
+      return;
+    }
+    if (responseTime > threshold) {
+      requestTimeoutExpired(responseTime, threshold, request);
     }
   });
 
