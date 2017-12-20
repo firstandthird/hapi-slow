@@ -49,7 +49,7 @@ exports.register = (server, config, next) => {
     const responseTime = request.info.responded - request.info.received;
     const plugin = request.route.settings.plugins['hapi-slow'];
     const threshold = (plugin && plugin.threshold) ? plugin.threshold : options.threshold;
-    if (threshold === false) {
+    if (threshold === 'disabled') {
       return;
     }
     if (responseTime > threshold) {

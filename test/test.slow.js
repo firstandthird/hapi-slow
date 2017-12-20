@@ -117,7 +117,7 @@ lab.test('individual routes can override threshold', { timeout: 5000 }, (done) =
   });
 });
 
-lab.test('individual routes can disable hapi-slow by setting threshold to false', { timeout: 5000 }, (done) => {
+lab.test('individual routes can disable hapi-slow by setting threshold to "disabled"', { timeout: 5000 }, (done) => {
   const statements = [];
   server.on('log', (logObj) => {
     code.expect(logObj.tags).to.include('hapi-slow');
@@ -144,7 +144,7 @@ lab.test('individual routes can disable hapi-slow by setting threshold to false'
       config: {
         plugins: {
           'hapi-slow': {
-            threshold: false
+            threshold: 'disabled'
           }
         }
       },
