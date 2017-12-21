@@ -3,6 +3,9 @@
   "version": "1.4.0",
   "description": "Hapi plugin to log slow responses",
   "main": "index.js",
+  "engine": {
+    "node": ">=8.0.0"
+  },
   "scripts": {
     "test": "lab --leaks -t 100 -e test "
   },
@@ -15,17 +18,20 @@
   "bugs": {
     "url": "https://github.com/firstandthird/hapi-slow/issues"
   },
+  "eslintConfig": {
+    "extends": "firstandthird"
+  },
   "homepage": "https://github.com/firstandthird/hapi-slow#readme",
   "dependencies": {
     "lodash": "^4.15.0"
   },
   "devDependencies": {
-    "logr": "^1.13.0",
-    "code": "^2.3.0",
-    "eslint": "^3.4.0",
-    "eslint-config-firstandthird": "^3.0.2",
-    "eslint-plugin-import": "^1.14.0",
-    "hapi": "^14.2.0",
-    "lab": "^11.0.1"
+    "logr": "^2.7.0",
+    "code": "^5.1.2",
+    "eslint": "^4.13.1",
+    "eslint-config-firstandthird": "^4.3.0",
+    "eslint-plugin-import": "^2.8.0",
+    "hapi": "^17.2.0",
+    "lab": "^15.1.2"
   }
 }

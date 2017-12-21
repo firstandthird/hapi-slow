@@ -1,16 +1,15 @@
-'use strict';
 const _ = require('lodash');
 
-const defaultOptions = {
+const defaults = {
   // time in ms, longer than this will trigger a warning:
   threshold: 1000,
   // will be included, plus whatever additional tags they want to add:
   tags: ['hapi-slow']
 };
 
-exports.register = (server, config, next) => {
-  const tags = _.union(config.tags, defaultOptions.tags);
-  const options = _.defaults(config, defaultOptions);
+const register = function(server, options) {
+  const tags = _.union(options.tags, defaults.tags);
+  options = Object.assign({}, defaults, options);
 
   // when a request took too long, do this:
   const requestTimeoutExpired = (responseTime, threshold, request) => {
@@ -26,25 +25,28 @@ exports.register = (server, config, next) => {
       userAgent: request.headers['user-agent'],
       referrer: request.info.referrer
     });
+
     if (request.plugins['hapi-slow']) {
       Object.keys(request.plugins['hapi-slow']).forEach((key) => {
         server.log(['hapi-slow', 'timing data'], request.plugins['hapi-slow'][key]);
       });
     }
   };
+
   server.decorate('request', 'timingStart', function(key) {
     if (!this.plugins['hapi-slow']) {
       this.plugins['hapi-slow'] = {};
     }
     this.plugins['hapi-slow'][key] = { name: key, start: new Date() };
   });
+
   server.decorate('request', 'timingEnd', function(key) {
     const timing = this.plugins['hapi-slow'][key];
     timing.end = new Date();
     timing.elapsed = timing.end - timing.start;
   });
 
-  server.on('tail', (request) => {
+  server.events.on('response', (request) => {
     // check the tail response times and notify if needed:
     const responseTime = request.info.responded - request.info.received;
     const plugin = request.route.settings.plugins['hapi-slow'];
@@ -53,10 +55,11 @@ exports.register = (server, config, next) => {
       requestTimeoutExpired(responseTime, threshold, request);
     }
   });
-
-  next();
 };
 
-exports.register.attributes = {
+exports.plugin = {
+  name: 'hapi-slow',
+  register,
+  once: true,
   pkg: require('./package.json')
 };

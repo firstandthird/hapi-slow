@@ -1,5 +1,3 @@
-'use strict';
-
 const Hapi = require('hapi');
 const code = require('code');
 const lab = exports.lab = require('lab').script();
@@ -10,21 +8,20 @@ lab.beforeEach((done) => {
   server = new Hapi.Server({
     debug: {
       log: ['hapi-slow']
-    }
-  });
-  server.connection();
-  done();
-});
-
-lab.afterEach((done) => {
-  server.stop(() => {
-    done();
+    },
+    host: 'localhost',
+    port: 8000
   });
 });
 
-lab.test('will log delayed requests', { timeout: 5000 }, (done) => {
+lab.afterEach(async (done) => {
+  await server.stop();
+});
+
+lab.test('will log delayed requests', { timeout: 5000 }, async () => {
   const statements = [];
-  server.on('log', (logObj) => {
+
+  server.events.on('log', (logObj) => {
     code.expect(logObj.tags).to.include('hapi-slow');
     code.expect(logObj.tags).to.include('error');
     code.expect(typeof logObj.data).to.equal('object');
@@ -33,42 +30,38 @@ lab.test('will log delayed requests', { timeout: 5000 }, (done) => {
     code.expect(typeof logObj.data.id).to.not.equal(undefined);
     statements.push(logObj.data);
   });
-  server.register({
-    register: hapiSlow,
+
+  await server.register({
+    plugin: hapiSlow,
     options: {
       threshold: 10,
       tags: ['error']
     }
-  }, (err) => {
-    if (err) {
-      throw err;
-    }
-    server.route({
-      method: 'GET',
-      path: '/',
-      handler: (request, reply) => {
-        setTimeout(() => {
-          reply('done!');
-        }, 200);
-      }
-    });
-    setTimeout(() => {
-      done();
-    }, 4000);
-    server.inject({
-      url: '/'
-    }, (response) => {
-      code.expect(response.statusCode).to.equal(200);
-      code.expect(statements.length).to.equal(1);
-      code.expect(statements[0].message).to.include('request took');
-      code.expect(typeof statements[0].responseTime).to.equal('number');
-    });
   });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    async handler(request, h) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return 'done!';
+    }
+  });
+
+  const response = await server.inject({
+    url: '/'
+  });
+
+  code.expect(response.statusCode).to.equal(200);
+  code.expect(statements.length).to.equal(1);
+  code.expect(statements[0].message).to.include('request took');
+  code.expect(typeof statements[0].responseTime).to.equal('number');
 });
 
-lab.test('individual routes can override threshold', { timeout: 5000 }, (done) => {
+lab.test('individual routes can override threshold', { timeout: 5000 }, async () => {
   const statements = [];
-  server.on('log', (logObj) => {
+
+  server.events.on('log', (logObj) => {
     code.expect(logObj.tags).to.include('hapi-slow');
     code.expect(logObj.tags).to.include('error');
     code.expect(typeof logObj.data).to.equal('object');
@@ -77,49 +70,45 @@ lab.test('individual routes can override threshold', { timeout: 5000 }, (done) =
     code.expect(typeof logObj.data.id).to.not.equal(undefined);
     statements.push(logObj.data);
   });
-  server.register({
-    register: hapiSlow,
+
+  await server.register({
+    plugin: hapiSlow,
     options: {
       threshold: 10000000,
       tags: ['error']
     }
-  }, (err) => {
-    if (err) {
-      throw err;
-    }
-    server.route({
-      method: 'GET',
-      path: '/',
-      config: {
-        plugins: {
-          'hapi-slow': {
-            threshold: 10
-          }
-        }
-      },
-      handler: (request, reply) => {
-        setTimeout(() => {
-          reply('done!');
-        }, 200);
-      }
-    });
-    setTimeout(() => {
-      done();
-    }, 4000);
-    server.inject({
-      url: '/'
-    }, (response) => {
-      code.expect(response.statusCode).to.equal(200);
-      code.expect(statements.length).to.equal(1);
-      code.expect(statements[0].message).to.include('request took');
-      code.expect(typeof statements[0].responseTime).to.equal('number');
-    });
   });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    config: {
+      plugins: {
+        'hapi-slow': {
+          threshold: 10
+        }
+      }
+    },
+    async handler(request, h) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return 'done!';
+    }
+  });
+
+  const response = await server.inject({
+    url: '/'
+  });
+
+  code.expect(response.statusCode).to.equal(200);
+  code.expect(statements.length).to.equal(1);
+  code.expect(statements[0].message).to.include('request took');
+  code.expect(typeof statements[0].responseTime).to.equal('number');
 });
 
-lab.test('individual routes can disable hapi-slow by setting threshold to false', { timeout: 5000 }, (done) => {
+lab.test('individual routes can disable hapi-slow by setting threshold to false', { timeout: 5000 }, async () => {
   const statements = [];
-  server.on('log', (logObj) => {
+
+  server.events.on('log', (logObj) => {
     code.expect(logObj.tags).to.include('hapi-slow');
     code.expect(logObj.tags).to.include('error');
     code.expect(typeof logObj.data).to.equal('object');
@@ -128,158 +117,139 @@ lab.test('individual routes can disable hapi-slow by setting threshold to false'
     code.expect(typeof logObj.data.id).to.not.equal(undefined);
     statements.push(logObj.data);
   });
-  server.register({
-    register: hapiSlow,
+
+  await server.register({
+    plugin: hapiSlow,
     options: {
       threshold: 10000000,
       tags: ['error']
     }
-  }, (err) => {
-    if (err) {
-      throw err;
-    }
-    server.route({
-      method: 'GET',
-      path: '/',
-      config: {
-        plugins: {
-          'hapi-slow': {
-            threshold: false
-          }
-        }
-      },
-      handler: (request, reply) => {
-        setTimeout(() => {
-          reply('done!');
-        }, 200);
-      }
-    });
-    setTimeout(() => {
-      done();
-    }, 4000);
-    server.inject({
-      url: '/'
-    }, (response) => {
-      code.expect(response.statusCode).to.equal(200);
-      code.expect(statements.length).to.equal(0);
-    });
   });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    config: {
+      plugins: {
+        'hapi-slow': {
+          threshold: false
+        }
+      }
+    },
+    async handler(request, h) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return 'done';
+    }
+  });
+
+  const response = await server.inject({
+    url: '/'
+  });
+
+  code.expect(response.statusCode).to.equal(200);
+  code.expect(statements.length).to.equal(0);
 });
 
-lab.test('will not react to requests that do not exceed the threshold', { timeout: 5000 }, (done) => {
-  server.register({
-    register: hapiSlow,
+lab.test('will not react to requests that do not exceed the threshold', { timeout: 5000 }, async () => {
+  await server.register({
+    plugin: hapiSlow,
     options: {
       threshold: 1000
     }
-  }, (err) => {
-    if (err) {
-      throw err;
-    }
-    server.route({
-      method: 'GET',
-      path: '/',
-      handler: (request, reply) => {
-        reply('done!');
-      }
-    });
-    // will fail if anything is logged:
-    server.on('log', () => {
-      code.expect(false).to.equal(true);
-    });
-    server.inject({
-      url: '/'
-    }, (response) => {
-      code.expect(response.statusCode).to.equal(200);
-      setTimeout(() => {
-        done();
-      }, 1100);
-    });
   });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    handler(request, h) {
+      return 'done!';
+    }
+  });
+
+  // will fail if anything is logged:
+  server.events.on('log', () => {
+    code.expect(false).to.equal(true);
+  });
+
+  const response = await server.inject({
+    url: '/'
+  });
+
+  code.expect(response.statusCode).to.equal(200);
 });
 
-lab.test('it tracks which method was used', (done) => {
-  server.on('log', (logObj) => {
+lab.test('it tracks which method was used', async () => {
+  server.events.on('log', (logObj) => {
     code.expect(logObj.data.method).to.equal('get');
-    done();
   });
 
-  server.register({
-    register: hapiSlow,
+  await server.register({
+    plugin: hapiSlow,
     options: {
       threshold: 10,
       tags: ['error']
     }
-  }, (err) => {
-    if (err) {
-      throw err;
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    async handler(request, h) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return 'done';
     }
-    server.route({
-      method: 'GET',
-      path: '/',
-      handler: (request, reply) => {
-        setTimeout(() => {
-          reply('done!');
-        }, 200);
-      }
-    });
-    setTimeout(() => {
-      done();
-    }, 4000);
-    server.inject({
-      url: '/'
-    }, (response) => {
-    });
+  });
+
+  await server.inject({
+    url: '/'
   });
 });
 
-lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, (done) => {
+lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, async () => {
   const statements = [];
-  server.on('log', (logObj) => {
+
+  server.events.on('log', (logObj) => {
     statements.push(logObj);
   });
 
-  server.register({
-    register: hapiSlow,
+  await server.register({
+    plugin: hapiSlow,
     options: {
       threshold: 10,
       tags: ['error']
     }
-  }, (err) => {
-    if (err) {
-      throw err;
-    }
-    server.route({
-      method: 'GET',
-      path: '/',
-      handler: (request, reply) => {
-        // timing entries are local to each individual request:
-        code.expect(Object.keys(request.plugins).length).to.equal(0);
-        request.timingStart('call db');
-        request.timingStart('process data');
-        setTimeout(() => {
-          request.timingEnd('call db');
-          setTimeout(() => {
-            request.timingEnd('process data');
-            reply(null, request.plugins);
-          }, 300);
-        }, 200);
-      }
-    });
-    server.inject({
-      url: '/'
-    }, () => {
-      server.inject({
-        url: '/'
-      }, () => {
-        // let 'tail' process:
-        setTimeout(() => {
-          code.expect(statements.length).to.equal(6);
-          code.expect(statements[1].data.name).to.equal('call db');
-          code.expect(statements[1].data.elapsed).to.be.greaterThan(199);
-          done();
-        }, 500);
-      });
-    });
   });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    async handler(request, h) {
+      // timing entries are local to each individual request:
+      code.expect(Object.keys(request.plugins).length).to.equal(0);
+      request.timingStart('call db');
+      request.timingStart('process data');
+
+      await new Promise(resolve => setTimeout(resolve, 200));
+      request.timingEnd('call db');
+
+      await new Promise(resolve => setTimeout(resolve, 300));
+      request.timingEnd('process data');
+
+      return request.plugins;
+    }
+  });
+
+  await server.inject({
+    url: '/'
+  });
+
+  await server.inject({
+    url: '/'
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  code.expect(statements.length).to.equal(6);
+  code.expect(statements[1].data.name).to.equal('call db');
+  code.expect(statements[1].data.elapsed).to.be.greaterThan(199);
 });
