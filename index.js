@@ -15,7 +15,7 @@ const register = function(server, options) {
   const requestTimeoutExpired = (responseTime, threshold, request) => {
     // log the tardiness:
     server.log(tags, {
-      id: request.id,
+      id: request.info.id,
       responseTime,
       threshold,
       message: `request took ${responseTime}ms to process`,
