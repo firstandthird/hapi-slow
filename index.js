@@ -1,6 +1,8 @@
 const _ = require('lodash');
 
 const defaults = {
+  // verbose mode always logs timings:
+  verbose: false,
   // time in ms, longer than this will trigger a warning:
   threshold: 1000,
   // will be included, plus whatever additional tags they want to add:
