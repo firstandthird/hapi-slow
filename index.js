@@ -24,7 +24,7 @@ const register = function(server, options) {
       method: request.method,
       userAgent: request.headers['user-agent'],
       referrer: request.info.referrer,
-      data: request.plugins['hapi-timing']
+      timings: request.plugins['hapi-timing']
     });
   };
 
