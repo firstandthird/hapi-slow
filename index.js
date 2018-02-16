@@ -27,9 +27,7 @@ const register = function(server, options) {
     });
 
     if (request.plugins['hapi-timing']) {
-      Object.keys(request.plugins['hapi-timing']).forEach((key) => {
-        server.log(['hapi-timing', 'timing data'], request.plugins['hapi-timing'][key]);
-      });
+      server.log(['hapi-timing', 'timing data'], request.plugins['hapi-timing']);
     }
   };
 

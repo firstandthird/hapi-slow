@@ -248,8 +248,7 @@ lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, as
   });
 
   await new Promise(resolve => setTimeout(resolve, 500));
-
-  code.expect(statements.length).to.equal(6);
-  code.expect(statements[1].data.name).to.equal('call db');
-  code.expect(statements[1].data.elapsed).to.be.greaterThan(199);
+  code.expect(statements.length).to.equal(4);
+  code.expect(statements[1].data['call db'].name).to.equal('call db');
+  code.expect(statements[1].data['call db'].elapsed).to.be.greaterThan(199);
 });
