@@ -23,14 +23,9 @@ const register = function(server, options) {
       hash: request.url.hash,
       method: request.method,
       userAgent: request.headers['user-agent'],
-      referrer: request.info.referrer
+      referrer: request.info.referrer,
+      timings: request.plugins['hapi-timing']
     });
-
-    if (request.plugins['hapi-timing']) {
-      Object.keys(request.plugins['hapi-timing']).forEach((key) => {
-        server.log(['hapi-timing', 'timing data'], request.plugins['hapi-timing'][key]);
-      });
-    }
   };
 
   server.decorate('request', 'timingStart', function(key) {
