@@ -178,6 +178,33 @@ lab.test('will not react to requests that do not exceed the threshold', { timeou
   code.expect(response.statusCode).to.equal(200);
 });
 
+lab.test('verbose mode will react to all requests', { timeout: 5000 }, async () => {
+  await server.register({
+    plugin: hapiTiming,
+    options: {
+      verbose: true,
+      threshold: 1000
+    }
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    handler(request, h) {
+      return 'done!';
+    }
+  });
+  const statements = [];
+
+  server.events.on('log', (logObj) => {
+    statements.push(logObj);
+  });
+
+  await server.inject({ url: '/' });
+  await new Promise(resolve => setTimeout(resolve, 500));
+  code.expect(statements.length).to.equal(1);
+});
+
 lab.test('it tracks which method was used', async () => {
   server.events.on('log', (logObj) => {
     code.expect(logObj.data.method).to.equal('get');
