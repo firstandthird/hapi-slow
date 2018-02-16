@@ -4,7 +4,7 @@ const defaults = {
   // time in ms, longer than this will trigger a warning:
   threshold: 1000,
   // will be included, plus whatever additional tags they want to add:
-  tags: ['hapi-slow']
+  tags: ['hapi-timing']
 };
 
 const register = function(server, options) {
@@ -26,22 +26,22 @@ const register = function(server, options) {
       referrer: request.info.referrer
     });
 
-    if (request.plugins['hapi-slow']) {
-      Object.keys(request.plugins['hapi-slow']).forEach((key) => {
-        server.log(['hapi-slow', 'timing data'], request.plugins['hapi-slow'][key]);
+    if (request.plugins['hapi-timing']) {
+      Object.keys(request.plugins['hapi-timing']).forEach((key) => {
+        server.log(['hapi-timing', 'timing data'], request.plugins['hapi-timing'][key]);
       });
     }
   };
 
   server.decorate('request', 'timingStart', function(key) {
-    if (!this.plugins['hapi-slow']) {
-      this.plugins['hapi-slow'] = {};
+    if (!this.plugins['hapi-timing']) {
+      this.plugins['hapi-timing'] = {};
     }
-    this.plugins['hapi-slow'][key] = { name: key, start: new Date() };
+    this.plugins['hapi-timing'][key] = { name: key, start: new Date() };
   });
 
   server.decorate('request', 'timingEnd', function(key) {
-    const timing = this.plugins['hapi-slow'][key];
+    const timing = this.plugins['hapi-timing'][key];
     timing.end = new Date();
     timing.elapsed = timing.end - timing.start;
   });
@@ -49,7 +49,7 @@ const register = function(server, options) {
   server.events.on('response', (request) => {
     // check the tail response times and notify if needed:
     const responseTime = request.info.responded - request.info.received;
-    const plugin = request.route.settings.plugins['hapi-slow'];
+    const plugin = request.route.settings.plugins['hapi-timing'];
     const threshold = (plugin && plugin.threshold) ? plugin.threshold : options.threshold;
     if (responseTime > threshold) {
       requestTimeoutExpired(responseTime, threshold, request);
@@ -58,7 +58,7 @@ const register = function(server, options) {
 };
 
 exports.plugin = {
-  name: 'hapi-slow',
+  name: 'hapi-timing',
   register,
   once: true,
   pkg: require('./package.json')

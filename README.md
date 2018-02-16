@@ -1,7 +1,7 @@
-# hapi-slow
+# hapi-timing
 
 
-[![Build Status](https://travis-ci.org/firstandthird/hapi-slow.svg?branch=master)](https://travis-ci.org/firstandthird/hapi-slow)
+[![Build Status](https://travis-ci.org/firstandthird/hapi-timing.svg?branch=master)](https://travis-ci.org/firstandthird/hapi-timing)
 
 
 Hapi plugin to log slow responses

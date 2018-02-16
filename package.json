@@ -1,5 +1,5 @@
 {
-  "name": "hapi-slow",
+  "name": "hapi-timing",
   "version": "2.0.1",
   "description": "Hapi plugin to log slow responses",
   "main": "index.js",
@@ -11,17 +11,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/firstandthird/hapi-slow.git"
+    "url": "git+https://github.com/firstandthird/hapi-timing.git"
   },
   "author": "First+Third",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/firstandthird/hapi-slow/issues"
+    "url": "https://github.com/firstandthird/hapi-timing/issues"
   },
   "eslintConfig": {
     "extends": "firstandthird"
   },
-  "homepage": "https://github.com/firstandthird/hapi-slow#readme",
+  "homepage": "https://github.com/firstandthird/hapi-timing#readme",
   "dependencies": {
     "lodash": "^4.15.0"
   },

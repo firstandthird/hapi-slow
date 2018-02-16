@@ -1,13 +1,13 @@
 const Hapi = require('hapi');
 const code = require('code');
 const lab = exports.lab = require('lab').script();
-const hapiSlow = require('../index.js');
+const hapiTiming = require('../index.js');
 
 let server;
 lab.beforeEach((done) => {
   server = new Hapi.Server({
     debug: {
-      log: ['hapi-slow']
+      log: ['hapi-timing']
     },
     host: 'localhost',
     port: 8000
@@ -22,7 +22,7 @@ lab.test('will log delayed requests', { timeout: 5000 }, async () => {
   const statements = [];
 
   server.events.on('log', (logObj) => {
-    code.expect(logObj.tags).to.include('hapi-slow');
+    code.expect(logObj.tags).to.include('hapi-timing');
     code.expect(logObj.tags).to.include('error');
     code.expect(typeof logObj.data).to.equal('object');
     code.expect(logObj.data.message).to.include('request took');
@@ -32,7 +32,7 @@ lab.test('will log delayed requests', { timeout: 5000 }, async () => {
   });
 
   await server.register({
-    plugin: hapiSlow,
+    plugin: hapiTiming,
     options: {
       threshold: 10,
       tags: ['error']
@@ -62,7 +62,7 @@ lab.test('individual routes can override threshold', { timeout: 5000 }, async ()
   const statements = [];
 
   server.events.on('log', (logObj) => {
-    code.expect(logObj.tags).to.include('hapi-slow');
+    code.expect(logObj.tags).to.include('hapi-timing');
     code.expect(logObj.tags).to.include('error');
     code.expect(typeof logObj.data).to.equal('object');
     code.expect(logObj.data.message).to.include('request took');
@@ -72,7 +72,7 @@ lab.test('individual routes can override threshold', { timeout: 5000 }, async ()
   });
 
   await server.register({
-    plugin: hapiSlow,
+    plugin: hapiTiming,
     options: {
       threshold: 10000000,
       tags: ['error']
@@ -84,7 +84,7 @@ lab.test('individual routes can override threshold', { timeout: 5000 }, async ()
     path: '/',
     config: {
       plugins: {
-        'hapi-slow': {
+        'hapi-timing': {
           threshold: 10
         }
       }
@@ -105,11 +105,11 @@ lab.test('individual routes can override threshold', { timeout: 5000 }, async ()
   code.expect(typeof statements[0].responseTime).to.equal('number');
 });
 
-lab.test('individual routes can disable hapi-slow by setting threshold to false', { timeout: 5000 }, async () => {
+lab.test('individual routes can disable hapi-timing by setting threshold to false', { timeout: 5000 }, async () => {
   const statements = [];
 
   server.events.on('log', (logObj) => {
-    code.expect(logObj.tags).to.include('hapi-slow');
+    code.expect(logObj.tags).to.include('hapi-timing');
     code.expect(logObj.tags).to.include('error');
     code.expect(typeof logObj.data).to.equal('object');
     code.expect(logObj.data.message).to.include('request took');
@@ -119,7 +119,7 @@ lab.test('individual routes can disable hapi-slow by setting threshold to false'
   });
 
   await server.register({
-    plugin: hapiSlow,
+    plugin: hapiTiming,
     options: {
       threshold: 10000000,
       tags: ['error']
@@ -131,7 +131,7 @@ lab.test('individual routes can disable hapi-slow by setting threshold to false'
     path: '/',
     config: {
       plugins: {
-        'hapi-slow': {
+        'hapi-timing': {
           threshold: false
         }
       }
@@ -152,7 +152,7 @@ lab.test('individual routes can disable hapi-slow by setting threshold to false'
 
 lab.test('will not react to requests that do not exceed the threshold', { timeout: 5000 }, async () => {
   await server.register({
-    plugin: hapiSlow,
+    plugin: hapiTiming,
     options: {
       threshold: 1000
     }
@@ -184,7 +184,7 @@ lab.test('it tracks which method was used', async () => {
   });
 
   await server.register({
-    plugin: hapiSlow,
+    plugin: hapiTiming,
     options: {
       threshold: 10,
       tags: ['error']
@@ -213,7 +213,7 @@ lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, as
   });
 
   await server.register({
-    plugin: hapiSlow,
+    plugin: hapiTiming,
     options: {
       threshold: 10,
       tags: ['error']
