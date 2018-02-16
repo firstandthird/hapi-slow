@@ -1,6 +1,8 @@
 const _ = require('lodash');
 
 const defaults = {
+  // verbose mode always logs timings:
+  verbose: false,
   // time in ms, longer than this will trigger a warning:
   threshold: 1000,
   // will be included, plus whatever additional tags they want to add:
@@ -46,7 +48,7 @@ const register = function(server, options) {
     const responseTime = request.info.responded - request.info.received;
     const plugin = request.route.settings.plugins['hapi-timing'];
     const threshold = (plugin && plugin.threshold) ? plugin.threshold : options.threshold;
-    if (responseTime > threshold) {
+    if (options.verbose || responseTime > threshold) {
       requestTimeoutExpired(responseTime, threshold, request);
     }
   });
