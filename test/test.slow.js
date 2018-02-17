@@ -252,3 +252,33 @@ lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, as
   code.expect(statements[1].data.timings['call db'].name).to.equal('call db');
   code.expect(statements[1].data.timings['call db'].elapsed).to.be.greaterThan(199);
 });
+
+lab.test('requestLifecycle will log timing for each step of the hapi request lifecycle', { timeout: 5000 }, async () => {
+  const statements = [];
+
+  server.events.on('log', (logObj) => {
+    statements.push(logObj.data);
+  });
+
+  await server.register({
+    plugin: hapiTiming,
+    options: {
+      requestLifecycle: true
+    }
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    async handler(request, h) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return 'done!';
+    }
+  });
+
+  await server.inject({
+    url: '/'
+  });
+  code.expect(Object.keys(statements[0].timings)).to.equal(['onRequest', 'onPreAuth', 'onPostAuth', 'onPreHandler', 'onPostHandler']);
+  code.expect(statements[0].timings.onPostHandler).to.be.greaterThan(199);
+});
