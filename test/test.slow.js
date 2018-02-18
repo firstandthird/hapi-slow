@@ -272,13 +272,19 @@ lab.test('requestLifecycle will log timing for each step of the hapi request lif
     path: '/',
     async handler(request, h) {
       await new Promise(resolve => setTimeout(resolve, 200));
-      return 'done!';
+      return { result: true };
     }
   });
 
   await server.inject({
     url: '/'
   });
-  code.expect(Object.keys(statements[0].timings)).to.equal(['onRequest', 'onPreAuth', 'onPostAuth', 'onPreHandler', 'onPostHandler']);
-  code.expect(statements[0].timings.onPostHandler).to.be.greaterThan(199);
+  await new Promise(resolve => setTimeout(resolve, 200));
+  const eventList = ['onRequest', 'onPreAuth', 'onPostAuth', 'onPreHandler', 'onPostHandler'];
+  code.expect(Object.keys(statements[0].timings)).to.equal(eventList);
+  eventList.forEach(eventName => {
+    const obj = statements[0].timings[eventName];
+    code.expect(typeof obj.elapsed).to.equal('number');
+  });
+  code.expect(statements[0].timings.onPreHandler.elapsed).to.be.greaterThan(199);
 });

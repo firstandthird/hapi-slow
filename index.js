@@ -40,34 +40,24 @@ const register = function(server, options) {
 
   server.decorate('request', 'timingEnd', function(key) {
     const timing = this.plugins['hapi-timing'][key];
-    timing.end = new Date();
-    timing.elapsed = timing.end - timing.start;
+    this.plugins['hapi-timing'][key].end = new Date();
+    this.plugins['hapi-timing'][key].elapsed = timing.end - timing.start;
   });
 
   if (options.requestLifecycle) {
     const eventNames = ['onRequest', 'onPreAuth', 'onPostAuth', 'onPreHandler', 'onPostHandler'];
-    eventNames.forEach(eventName => {
+    eventNames.forEach((eventName, i) => {
       server.ext(eventName, (request, h) => {
-        if (!request.plugins['hapi-timing']) {
-          request.plugins['hapi-timing'] = {};
+        if (i !== 0) {
+          // call timingEnd on previous event:
+          request.timingEnd(eventNames[i - 1]);
         }
-        request.plugins['hapi-timing'][eventName] = new Date();
+        request.timingStart(eventName);
         return h.continue;
       });
     });
     server.events.on('response', (request) => {
-      request.plugins['hapi-timing'].timings = {};
-      eventNames.forEach((eventName, i) => {
-        if (i === 0) {
-          const nextEventName = eventNames[i + 1];
-          request.plugins['hapi-timing'].timings[eventName] = request.plugins['hapi-timing'][nextEventName].getTime() -
-            request.plugins['hapi-timing'][eventName].getTime();
-        } else {
-          const previousEventName = eventNames[i - 1];
-          request.plugins['hapi-timing'].timings[eventName] = request.plugins['hapi-timing'][eventName].getTime() -
-            request.plugins['hapi-timing'][previousEventName].getTime();
-        }
-      });
+      request.timingEnd('onPostHandler');
       // log the tardiness:
       const responseTime = request.info.responded - request.info.received;
       server.log(tags, {
@@ -79,7 +69,7 @@ const register = function(server, options) {
         method: request.method,
         userAgent: request.headers['user-agent'],
         referrer: request.info.referrer,
-        timings: request.plugins['hapi-timing'].timings
+        timings: request.plugins['hapi-timing']
       });
     });
   } else {
