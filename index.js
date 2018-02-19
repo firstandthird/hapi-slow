@@ -15,9 +15,9 @@ const register = function(server, options) {
   options = Object.assign({}, defaults, options);
 
   // when a request took too long, do this:
-  const requestTimeoutExpired = (responseTime, threshold, request) => {
+  const requestTimeoutExpired = (responseTime, request, threshold) => {
     // log the tardiness:
-    server.log(tags, {
+    const output = {
       id: request.info.id,
       responseTime,
       threshold,
@@ -28,7 +28,8 @@ const register = function(server, options) {
       userAgent: request.headers['user-agent'],
       referrer: request.info.referrer,
       timings: request.plugins['hapi-timing']
-    });
+    };
+    server.log(tags, output);
   };
 
   server.decorate('request', 'timingStart', function(key) {
@@ -56,33 +57,20 @@ const register = function(server, options) {
         return h.continue;
       });
     });
-    server.events.on('response', (request) => {
-      request.timingEnd('onPostHandler');
-      // log the tardiness:
-      const responseTime = request.info.responded - request.info.received;
-      server.log(tags, {
-        id: request.info.id,
-        responseTime,
-        message: `request took ${responseTime}ms to process`,
-        url: request.url.path,
-        hash: request.url.hash,
-        method: request.method,
-        userAgent: request.headers['user-agent'],
-        referrer: request.info.referrer,
-        timings: request.plugins['hapi-timing']
-      });
-    });
-  } else {
-    server.events.on('response', (request) => {
-      // check the tail response times and notify if needed:
-      const responseTime = request.info.responded - request.info.received;
-      const plugin = request.route.settings.plugins['hapi-timing'];
-      const threshold = (plugin && plugin.threshold) ? plugin.threshold : options.threshold;
-      if (responseTime > threshold) {
-        requestTimeoutExpired(responseTime, threshold, request);
-      }
-    });
   }
+  server.events.on('response', (request) => {
+    // turn off last event handler if we were monitoring each lifecycle segment:
+    if (options.requestLifecycle) {
+      request.timingEnd('onPostHandler');
+    }
+    // check the tail response times and notify if needed:
+    const responseTime = request.info.responded - request.info.received;
+    const plugin = request.route.settings.plugins['hapi-timing'];
+    const threshold = (plugin && plugin.threshold) ? plugin.threshold : options.threshold;
+    if (options.requestLifecycle || responseTime > threshold) {
+      requestTimeoutExpired(responseTime, request, threshold);
+    }
+  });
 };
 
 exports.plugin = {
