@@ -4,6 +4,8 @@ const defaults = {
   // in this mode we will log each step of
   // the hapi request lifecycle (https://hapijs.com/api#request-lifecycle)
   requestLifecycle: false,
+  // verbose mode always logs timings:
+  verbose: false,
   // time in ms, longer than this will trigger a warning:
   threshold: 1000,
   // will be included, plus whatever additional tags they want to add:
@@ -15,7 +17,7 @@ const register = function(server, options) {
   options = Object.assign({}, defaults, options);
 
   // when a request took too long, do this:
-  const requestTimeoutExpired = (responseTime, request, threshold) => {
+  const requestTimeoutExpired = (responseTime, threshold, request) => {
     // log the tardiness:
     const output = {
       id: request.info.id,
@@ -67,8 +69,8 @@ const register = function(server, options) {
     const responseTime = request.info.responded - request.info.received;
     const plugin = request.route.settings.plugins['hapi-timing'];
     const threshold = (plugin && plugin.threshold) ? plugin.threshold : options.threshold;
-    if (options.requestLifecycle || responseTime > threshold) {
-      requestTimeoutExpired(responseTime, request, threshold);
+    if (options.verbose || responseTime > threshold) {
+      requestTimeoutExpired(responseTime, threshold, request);
     }
   });
 };
