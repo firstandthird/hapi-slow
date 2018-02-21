@@ -178,6 +178,33 @@ lab.test('will not react to requests that do not exceed the threshold', { timeou
   code.expect(response.statusCode).to.equal(200);
 });
 
+lab.test('verbose mode will react to all requests', { timeout: 5000 }, async () => {
+  await server.register({
+    plugin: hapiTiming,
+    options: {
+      verbose: true,
+      threshold: 1000
+    }
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    handler(request, h) {
+      return 'done!';
+    }
+  });
+  const statements = [];
+
+  server.events.on('log', (logObj) => {
+    statements.push(logObj);
+  });
+
+  await server.inject({ url: '/' });
+  await new Promise(resolve => setTimeout(resolve, 500));
+  code.expect(statements.length).to.equal(1);
+});
+
 lab.test('it tracks which method was used', async () => {
   server.events.on('log', (logObj) => {
     code.expect(logObj.data.method).to.equal('get');
@@ -248,8 +275,44 @@ lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, as
   });
 
   await new Promise(resolve => setTimeout(resolve, 500));
+  code.expect(statements.length).to.equal(2);
+  code.expect(statements[1].data.timings['call db'].name).to.equal('call db');
+  code.expect(statements[1].data.timings['call db'].elapsed).to.be.greaterThan(199);
+});
 
-  code.expect(statements.length).to.equal(6);
-  code.expect(statements[1].data.name).to.equal('call db');
-  code.expect(statements[1].data.elapsed).to.be.greaterThan(199);
+lab.test('requestLifecycle will log timing for each step of the hapi request lifecycle', { timeout: 5000 }, async () => {
+  const statements = [];
+
+  server.events.on('log', (logObj) => {
+    statements.push(logObj.data);
+  });
+
+  await server.register({
+    plugin: hapiTiming,
+    options: {
+      threshold: 10,
+      requestLifecycle: true
+    }
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    async handler(request, h) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return { result: true };
+    }
+  });
+
+  await server.inject({
+    url: '/'
+  });
+  await new Promise(resolve => setTimeout(resolve, 200));
+  const eventList = ['onRequest', 'onPreAuth', 'onPostAuth', 'onPreHandler', 'onPostHandler'];
+  code.expect(Object.keys(statements[0].timings)).to.equal(eventList);
+  eventList.forEach(eventName => {
+    const obj = statements[0].timings[eventName];
+    code.expect(typeof obj.elapsed).to.equal('number');
+  });
+  code.expect(statements[0].timings.onPreHandler.elapsed).to.be.greaterThan(199);
 });
