@@ -25,9 +25,7 @@ lab.test('will log delayed requests', { timeout: 5000 }, async () => {
     code.expect(logObj.tags).to.include('hapi-timing');
     code.expect(logObj.tags).to.include('error');
     code.expect(typeof logObj.data).to.equal('object');
-    code.expect(logObj.data.message).to.include('request took');
     code.expect(typeof logObj.data.responseTime).to.equal('number');
-    code.expect(typeof logObj.data.id).to.not.equal(undefined);
     statements.push(logObj);
   });
 
@@ -58,6 +56,49 @@ lab.test('will log delayed requests', { timeout: 5000 }, async () => {
   code.expect(typeof statements[0].data.responseTime).to.equal('number');
 });
 
+lab.test('will include id and referrer if specified', { timeout: 5000 }, async () => {
+  const statements = [];
+
+  server.events.on('log', (logObj) => {
+    code.expect(logObj.tags).to.include('hapi-timing');
+    code.expect(logObj.tags).to.include('error');
+    code.expect(typeof logObj.data).to.equal('object');
+    code.expect(typeof logObj.data.responseTime).to.equal('number');
+    code.expect(typeof logObj.data.id).to.equal('string');
+    statements.push(logObj.data);
+  });
+
+  await server.register({
+    plugin: hapiTiming,
+    options: {
+      threshold: 10,
+      includeId: true,
+      tags: ['error']
+    }
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    async handler(request, h) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return 'done!';
+    }
+  });
+
+  const response = await server.inject({
+    url: '/',
+    headers: {
+      referrer: 'a mysterious carnival barker'
+    }
+  });
+
+  code.expect(response.statusCode).to.equal(200);
+  code.expect(statements.length).to.equal(1);
+  code.expect(typeof statements[0].responseTime).to.equal('number');
+  code.expect(statements[0].referrer).to.equal('a mysterious carnival barker');
+});
+
 lab.test('individual routes can override threshold', { timeout: 5000 }, async () => {
   const statements = [];
 
@@ -65,9 +106,7 @@ lab.test('individual routes can override threshold', { timeout: 5000 }, async ()
     code.expect(logObj.tags).to.include('hapi-timing');
     code.expect(logObj.tags).to.include('error');
     code.expect(typeof logObj.data).to.equal('object');
-    code.expect(logObj.data.message).to.include('request took');
     code.expect(typeof logObj.data.responseTime).to.equal('number');
-    code.expect(typeof logObj.data.id).to.not.equal(undefined);
     statements.push(logObj.data);
   });
 
@@ -101,7 +140,6 @@ lab.test('individual routes can override threshold', { timeout: 5000 }, async ()
 
   code.expect(response.statusCode).to.equal(200);
   code.expect(statements.length).to.equal(1);
-  code.expect(statements[0].message).to.include('request took');
   code.expect(typeof statements[0].responseTime).to.equal('number');
 });
 
@@ -203,7 +241,7 @@ lab.test('verbose mode will react to all requests', { timeout: 5000 }, async () 
   await server.inject({ url: '/' });
   await new Promise(resolve => setTimeout(resolve, 500));
   code.expect(statements.length).to.equal(1);
-  // verbose mode won't have 'slow' and 'warning' tags:
+  // verbose mode won't necessarily have 'slow' and 'warning' tags:
   code.expect(statements[0].tags.indexOf('slow')).to.equal(-1);
   code.expect(statements[0].tags.indexOf('warning')).to.equal(-1);
 });
@@ -280,7 +318,7 @@ lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, as
   await new Promise(resolve => setTimeout(resolve, 500));
   code.expect(statements.length).to.equal(2);
   code.expect(statements[1].data.timings['call db'].name).to.equal('call db');
-  code.expect(statements[1].data.timings['call db'].elapsed).to.be.greaterThan(199);
+  code.expect(statements[1].data.timings['call db'].elapsed).to.be.greaterThan(198);
 });
 
 lab.test('requestLifecycle will log timing for each step of the hapi request lifecycle', { timeout: 5000 }, async () => {
@@ -317,5 +355,5 @@ lab.test('requestLifecycle will log timing for each step of the hapi request lif
     const obj = statements[0].timings[eventName];
     code.expect(typeof obj.elapsed).to.equal('number');
   });
-  code.expect(statements[0].timings.onPreHandler.elapsed).to.be.greaterThan(199);
+  code.expect(statements[0].timings.onPreHandler.elapsed).to.be.greaterThan(198);
 });
