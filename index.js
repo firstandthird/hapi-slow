@@ -14,7 +14,7 @@ const defaults = {
 };
 
 const register = function(server, options) {
-  const tags = _.union(options.tags, defaults.tags);
+  let tags = _.union(options.tags, defaults.tags);
   options = Object.assign({}, defaults, options);
 
   // when a request took too long, do this:
@@ -27,6 +27,10 @@ const register = function(server, options) {
       method: request.method,
       userAgent: request.headers['user-agent'],
     };
+    // add slow warning tags if over threshold:
+    if (responseTime > threshold) {
+      tags = tags.concat(['slow', 'warning']);
+    }
     if (request.info.referrer) {
       output.referrer = request.info.referrer;
     }

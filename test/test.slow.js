@@ -24,6 +24,8 @@ lab.test('will log delayed requests', { timeout: 5000 }, async () => {
   server.events.on('log', (logObj) => {
     code.expect(logObj.tags).to.include('hapi-timing');
     code.expect(logObj.tags).to.include('error');
+    code.expect(logObj.tags).to.include('slow');
+    code.expect(logObj.tags).to.include('warning');
     code.expect(typeof logObj.data).to.equal('object');
     code.expect(typeof logObj.data.responseTime).to.equal('number');
     statements.push(logObj.data);
@@ -240,6 +242,9 @@ lab.test('verbose mode will react to all requests', { timeout: 5000 }, async () 
   await server.inject({ url: '/' });
   await new Promise(resolve => setTimeout(resolve, 500));
   code.expect(statements.length).to.equal(1);
+  // verbose mode won't necessarily have 'slow' and 'warning' tags:
+  code.expect(statements[0].tags).to.not.include('slow');
+  code.expect(statements[0].tags).to.not.include('warning');
 });
 
 lab.test('it tracks which method was used', async () => {
