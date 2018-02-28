@@ -314,7 +314,7 @@ lab.test('adds timingStart and timingEnd request methods', { timeout: 5000 }, as
   await new Promise(resolve => setTimeout(resolve, 500));
   code.expect(statements.length).to.equal(2);
   code.expect(statements[1].data.timings['call db'].name).to.equal('call db');
-  code.expect(statements[1].data.timings['call db'].elapsed).to.be.greaterThan(199);
+  code.expect(statements[1].data.timings['call db'].elapsed).to.be.greaterThan(198);
 });
 
 lab.test('requestLifecycle will log timing for each step of the hapi request lifecycle', { timeout: 5000 }, async () => {
@@ -351,5 +351,5 @@ lab.test('requestLifecycle will log timing for each step of the hapi request lif
     const obj = statements[0].timings[eventName];
     code.expect(typeof obj.elapsed).to.equal('number');
   });
-  code.expect(statements[0].timings.onPreHandler.elapsed).to.be.greaterThan(199);
+  code.expect(statements[0].timings.onPreHandler.elapsed).to.be.greaterThan(198);
 });
