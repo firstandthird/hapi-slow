@@ -9,7 +9,8 @@ const defaults = {
   // time in ms, longer than this will trigger a warning:
   threshold: 1000,
   // will be included, plus whatever additional tags they want to add:
-  tags: ['hapi-timing']
+  tags: ['hapi-timing'],
+  includeId: false
 };
 
 const register = function(server, options) {
@@ -20,17 +21,24 @@ const register = function(server, options) {
   const requestTimeoutExpired = (responseTime, threshold, request) => {
     // log the tardiness:
     const output = {
-      id: request.info.id,
       responseTime,
       threshold,
-      message: `request took ${responseTime}ms to process`,
       url: request.url.path,
-      hash: request.url.hash,
       method: request.method,
       userAgent: request.headers['user-agent'],
-      referrer: request.info.referrer,
-      timings: request.plugins['hapi-timing']
     };
+    if (request.info.referrer) {
+      output.referrer = request.info.referrer;
+    }
+    if (request.plugins['hapi-timing']) {
+      output.timings = request.plugins['hapi-timing'];
+    }
+    if (options.includeId) {
+      output.id = request.info.id;
+    }
+    if (request.url.hash) {
+      output.hash = request.url.hash;
+    }
     server.log(tags, output);
   };
 
