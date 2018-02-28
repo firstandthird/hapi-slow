@@ -138,9 +138,8 @@ lab.test('individual routes can override threshold', { timeout: 5000 }, async ()
   });
 
   code.expect(response.statusCode).to.equal(200);
-  // code.expect(statements.length).to.equal(1);
-  // code.expect(statements[0].message).to.include('request took');
-  // code.expect(typeof statements[0].responseTime).to.equal('number');
+  code.expect(statements.length).to.equal(1);
+  code.expect(typeof statements[0].responseTime).to.equal('number');
 });
 
 lab.test('individual routes can disable hapi-timing by setting threshold to false', { timeout: 5000 }, async () => {
