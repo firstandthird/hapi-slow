@@ -9,11 +9,11 @@ const defaults = {
   // time in ms, longer than this will trigger a warning:
   threshold: 1000,
   // will be included, plus whatever additional tags they want to add:
-  tags: ['hapi-timing', 'slow', 'warning']
+  tags: ['hapi-timing']
 };
 
 const register = function(server, options) {
-  const tags = _.union(options.tags, defaults.tags);
+  let tags = _.union(options.tags, defaults.tags);
   options = Object.assign({}, defaults, options);
 
   // when a request took too long, do this:
@@ -31,6 +31,10 @@ const register = function(server, options) {
       referrer: request.info.referrer,
       timings: request.plugins['hapi-timing']
     };
+    // add slow warning tags if over threshold:
+    if (responseTime > threshold) {
+      tags = tags.concat(['slow', 'warning']);
+    }
     server.log(tags, output);
   };
 

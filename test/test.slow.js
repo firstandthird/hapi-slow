@@ -28,7 +28,7 @@ lab.test('will log delayed requests', { timeout: 5000 }, async () => {
     code.expect(logObj.data.message).to.include('request took');
     code.expect(typeof logObj.data.responseTime).to.equal('number');
     code.expect(typeof logObj.data.id).to.not.equal(undefined);
-    statements.push(logObj.data);
+    statements.push(logObj);
   });
 
   await server.register({
@@ -54,8 +54,8 @@ lab.test('will log delayed requests', { timeout: 5000 }, async () => {
 
   code.expect(response.statusCode).to.equal(200);
   code.expect(statements.length).to.equal(1);
-  code.expect(statements[0].message).to.include('request took');
-  code.expect(typeof statements[0].responseTime).to.equal('number');
+  code.expect(statements[0].tags).to.equal(['error', 'hapi-timing', 'slow', 'warning']);
+  code.expect(typeof statements[0].data.responseTime).to.equal('number');
 });
 
 lab.test('individual routes can override threshold', { timeout: 5000 }, async () => {
@@ -203,6 +203,9 @@ lab.test('verbose mode will react to all requests', { timeout: 5000 }, async () 
   await server.inject({ url: '/' });
   await new Promise(resolve => setTimeout(resolve, 500));
   code.expect(statements.length).to.equal(1);
+  // verbose mode won't have 'slow' and 'warning' tags:
+  code.expect(statements[0].tags.indexOf('slow')).to.equal(-1);
+  code.expect(statements[0].tags.indexOf('warning')).to.equal(-1);
 });
 
 lab.test('it tracks which method was used', async () => {
