@@ -243,8 +243,8 @@ lab.test('verbose mode will react to all requests', { timeout: 5000 }, async () 
   await new Promise(resolve => setTimeout(resolve, 500));
   code.expect(statements.length).to.equal(1);
   // verbose mode won't necessarily have 'slow' and 'warning' tags:
-  code.expect(statements[0].tags.indexOf('slow')).to.equal(-1);
-  code.expect(statements[0].tags.indexOf('warning')).to.equal(-1);
+  code.expect(statements[0].tags).to.not.include('slow');
+  code.expect(statements[0].tags).to.not.include('warning');
 });
 
 lab.test('it tracks which method was used', async () => {
