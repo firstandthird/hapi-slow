@@ -36,9 +36,6 @@ const register = function(server, options) {
     if (options.includeId) {
       output.id = request.info.id;
     }
-    if (request.url.hash) {
-      output.hash = request.url.hash;
-    }
     server.log(tags, output);
   };
 
