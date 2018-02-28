@@ -24,9 +24,11 @@ lab.test('will log delayed requests', { timeout: 5000 }, async () => {
   server.events.on('log', (logObj) => {
     code.expect(logObj.tags).to.include('hapi-timing');
     code.expect(logObj.tags).to.include('error');
+    code.expect(logObj.tags).to.include('slow');
+    code.expect(logObj.tags).to.include('warning');
     code.expect(typeof logObj.data).to.equal('object');
     code.expect(typeof logObj.data.responseTime).to.equal('number');
-    statements.push(logObj);
+    statements.push(logObj.data);
   });
 
   await server.register({
@@ -52,8 +54,7 @@ lab.test('will log delayed requests', { timeout: 5000 }, async () => {
 
   code.expect(response.statusCode).to.equal(200);
   code.expect(statements.length).to.equal(1);
-  code.expect(statements[0].tags).to.equal(['error', 'hapi-timing', 'slow', 'warning']);
-  code.expect(typeof statements[0].data.responseTime).to.equal('number');
+  code.expect(typeof statements[0].responseTime).to.equal('number');
 });
 
 lab.test('will include id and referrer if specified', { timeout: 5000 }, async () => {
