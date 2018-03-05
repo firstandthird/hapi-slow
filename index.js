@@ -14,11 +14,11 @@ const defaults = {
 };
 
 const register = function(server, options) {
-  let tags = _.union(options.tags, defaults.tags);
   options = Object.assign({}, defaults, options);
 
   // when a request took too long, do this:
   const requestTimeoutExpired = (responseTime, threshold, request) => {
+    let tags = _.union(options.tags, defaults.tags);
     // log the tardiness:
     const output = {
       responseTime,
