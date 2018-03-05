@@ -14,11 +14,11 @@ const defaults = {
 };
 
 const register = function(server, options) {
-  const tags = _.union(options.tags, defaults.tags);
   options = Object.assign({}, defaults, options);
 
   // when a request took too long, do this:
   const requestTimeoutExpired = (responseTime, threshold, request) => {
+    let tags = _.union(options.tags, defaults.tags);
     // log the tardiness:
     const output = {
       responseTime,
@@ -29,12 +29,7 @@ const register = function(server, options) {
     };
     // add slow warning tags if over threshold:
     if (responseTime > threshold) {
-      if (!tags.includes('slow')) {
-        tags.push('slow');
-      }
-      if (!tags.includes('warning')) {
-        tags.push('warning');
-      }
+      tags = tags.concat(['slow', 'warning']);
     }
     if (request.info.referrer) {
       output.referrer = request.info.referrer;
