@@ -25,12 +25,12 @@ const register = function(server, options) {
       threshold,
       url: request.url.path,
       method: request.method,
-      userAgent: request.headers['user-agent'],
-      message: `${request.url.path} response time of ${responseTime} exceeded threshold of ${threshold}`
+      userAgent: request.headers['user-agent']
     };
     // add slow warning tags if over threshold:
     if (responseTime > threshold) {
       tags = tags.concat(['slow', 'warning']);
+      output.message = `${request.url.path} response time of ${responseTime} exceeded threshold of ${threshold}`;
     }
     if (request.info.referrer) {
       output.referrer = request.info.referrer;
