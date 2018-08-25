@@ -26,6 +26,7 @@ const register = function(server, options) {
       url: request.url.path,
       method: request.method,
       userAgent: request.headers['user-agent'],
+      message: `${request.url.path} response time of ${responseTime} exceeded threshold of ${threshold}`
     };
     // add slow warning tags if over threshold:
     if (responseTime > threshold) {
