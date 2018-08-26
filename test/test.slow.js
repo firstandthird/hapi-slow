@@ -238,6 +238,7 @@ lab.test('verbose mode will react to all requests', { timeout: 5000 }, async () 
   const statements = [];
 
   server.events.on('log', (logObj) => {
+    code.expect(logObj.data.message).to.include('/ responded in ');
     statements.push(logObj);
   });
 
