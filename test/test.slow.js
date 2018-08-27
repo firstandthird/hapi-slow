@@ -27,6 +27,8 @@ lab.test('will log delayed requests', { timeout: 5000 }, async () => {
     code.expect(logObj.tags).to.include('slow');
     code.expect(logObj.tags).to.include('warning');
     code.expect(typeof logObj.data).to.equal('object');
+    code.expect(logObj.data.message).to.include('/ response time of ');
+    code.expect(logObj.data.message).to.include(' exceeded threshold of ');
     code.expect(typeof logObj.data.responseTime).to.equal('number');
     statements.push(logObj.data);
   });
@@ -236,6 +238,7 @@ lab.test('verbose mode will react to all requests', { timeout: 5000 }, async () 
   const statements = [];
 
   server.events.on('log', (logObj) => {
+    code.expect(logObj.data.message).to.include('/ responded in ');
     statements.push(logObj);
   });
 
