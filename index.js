@@ -23,15 +23,15 @@ const register = function(server, options) {
     const output = {
       responseTime,
       threshold,
-      url: request.url.path,
+      url: request.path,
       method: request.method,
-      message: `${request.url.path} responded in ${responseTime}ms`,
+      message: `${request.path} responded in ${responseTime}ms`,
       userAgent: request.headers['user-agent']
     };
     // add slow warning tags if over threshold:
     if (responseTime > threshold) {
       tags = tags.concat(['slow', 'warning']);
-      output.message = `${request.url.path} response time of ${responseTime}ms exceeded threshold of ${threshold}ms`;
+      output.message = `${request.path} response time of ${responseTime}ms exceeded threshold of ${threshold}ms`;
     }
     if (request.info.referrer) {
       output.referrer = request.info.referrer;

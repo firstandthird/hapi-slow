@@ -26,12 +26,12 @@
     "lodash": "^4.15.0"
   },
   "devDependencies": {
-    "logr": "^2.7.0",
     "code": "^5.1.2",
     "eslint": "^4.13.1",
     "eslint-config-firstandthird": "^4.3.0",
     "eslint-plugin-import": "^2.8.0",
-    "hapi": "^17.2.0",
-    "lab": "^15.1.2"
+    "hapi": "^18.0.0",
+    "lab": "^15.1.2",
+    "logr": "^2.7.0"
   }
 }
